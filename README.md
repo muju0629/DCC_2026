@@ -6,6 +6,8 @@
 
 재현: `python src/eda.py --label_dir Sample/02.라벨링데이터 --audio_dir Sample/01.원천데이터`
 
+대회 규정 원문: **[docs/competition_brief.md](docs/competition_brief.md)** (미션 정의, 제출물, 실행규칙, 일정)
+
 ---
 
 ## 우리가 푸는 문제
@@ -111,7 +113,7 @@ channels=1  rate=8000Hz  width=16bit   → 100/100
 ```
 
 - 샘플의 72:28은 문서의 전체 통계(M 52.1 / F 47.9)와 크게 다르다. 100건 표본오차일 수도, 서울 편향일 수도 있다. **전체 Training으로 반드시 재측정.** majority baseline이 몇 %인지가 곧 최저 목표선이다.
-- 전체 발화의 절반이 수보자 발화다. 미션 1이 발화 단위 채점이라면 **이 절반은 "수보자 목소리인데 정답은 신고자 성별"** 이 된다. 학습 때만 speaker를 열어준 규칙과 정확히 맞물린다. 신고자 발화만 골라 학습하고, 추론 때는 어느 조각이 신고자인지 모르는 채로 통화 단위 성별을 내야 하는 구조로 읽힌다.
+- 전체 발화의 절반이 수보자 발화다. 제출 CSV가 `[audio file name], [startAt], [endAt], [gender]`라 **채점 단위가 발화 조각으로 확정됐다.** 즉 **이 절반은 "수보자 목소리인데 정답은 신고자 성별"** 이 된다. 학습 때만 speaker를 열어준 규칙과 정확히 맞물린다. 신고자 발화만 골라 학습하고, 추론 때는 어느 조각이 신고자인지 모르는 채로 통화 단위 성별을 내야 하는 구조로 읽힌다.
 - 신고자 발화 길이(ms): p10 528 / 중앙 1,680 / p90 5,270
 
 ---
@@ -257,7 +259,18 @@ Validation 폴더는 학습에도 못 쓴다. 즉 **제출 전까지 우리 성�
 **3. 도메인 시프트를 한 번도 못 재보고 제출하게 된다.** Training이 서울만인데 Validation 지역 구성을 모른다.
 → 서울 데이터를 신고접수일이나 자치구로 쪼개서 "학습에서 본 적 없는 분포"에 대한 일반화 성능을 미리 재두는 게 안전하다. 랜덤 split만 하면 실제보다 성능이 낙관적으로 나온다.
 
-**4. 포맷 사고가 곧 0점이다.** 점수를 못 보니 CSV 컬럼이 틀려도 알 방법이 없다.
+**4. 포맷 사고가 곧 0점이다.** 점수를 못 보니 CSV 컬럼이 틀려도 알 방법이 없다. 게다가 평가는 아래 명령 **1회 실행**으로 끝나야 한다.
+
+```
+python inference.py --audio_dir {wav folder} --label_dir {json folder} --ckpt_path {checkpoint file} --output ./outputs/mission{미션번호}.csv
+```
+
+| 미션 | 출력 CSV 컬럼 |
+|---|---|
+| 1 | `[audio file name], [startAt], [endAt], [gender]` |
+| 2 | `[audio file name], [startAt], [endAt], [speaker]` |
+| 3 | `[label file name], [symptom]` (string type, 0~9개) |
+
 → 제출 전에 `inference.py`를 **Validation 폴더에 실제로 돌려서** (라벨은 안 보고) 출력 행 수, 컬럼, 결측, 파일명 매칭을 눈으로 확인할 것. 이건 규칙 위반이 아니다. 학습에 안 쓰는 것뿐이다.
 
 **5. 과감한 베팅보다 앙상블과 보수적 선택이 유리하다.** 피드백 루프가 없으면 도박을 검증할 방법이 없다.
@@ -296,7 +309,7 @@ Mission 2는 사실상 **화자 분할(speaker diarization)** 문제다. 표준 
 ### 사무국 / Q&A 채널로 돌릴 것 (멘토 시간 쓰지 말 것)
 
 - 슬라이드 10의 Mission 3 F1 상세 정의 (자료 배포 예정)
-- Mission 1 제출 CSV에서 같은 audio file name 행들을 묶어 통화당 성별 하나를 채워도 되는지
+- ~~Mission 1 제출 CSV 행 단위~~ → 브리프에서 `[audio file name], [startAt], [endAt], [gender]`로 확정. 조각마다 한 행이고, 같은 통화의 행에 같은 값을 채우는 건 모델 설계 문제지 규칙 문제가 아님
 - Mission 2에서 인접 발화가 24.9% 겹치는데 조각 자르기 기준이 따로 있는지
 - AI Hub 데이터를 전체 다운로드해야 하는지, 서울 Training만 부분 다운로드 가능한지
 
@@ -313,6 +326,7 @@ Mission 2는 사실상 **화자 분할(speaker diarization)** 문제다. 표준 
 ```
 README.md                              이 문서 (EDA 결과 + 전략)
 docs/
+  competition_brief.md                 대회 규정 원문 + 샘플 대조표
   mission2_speaker_spectrum.md         화자별 주파수 특성 / 채널 누수 진단
   mentoring_draft.md                   멘토링 게시판 문의 초안
 src/
