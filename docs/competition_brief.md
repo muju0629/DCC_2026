@@ -115,7 +115,7 @@ python inference.py --audio_dir {wav folder} --label_dir {json folder} --ckpt_pa
 speaker: 0 = 수보자(119대원), 1 = 신고자
 
 **주의**: 활용 가이드라인 문서의 예시 JSON에서 speaker 0이 주소를 말하고(신고자처럼) speaker 1이 연락처를 묻는다(수보자처럼). 정의와 반대로 보임. Mission 2는 이 라벨이 전부이므로 실제 데이터로 반드시 검증할 것.
-→ **검증 완료. 정의가 맞다** (README §4 참조). 가이드라인 문서의 예시 JSON이 잘못 실린 것.
+→ **검증 완료. 정의가 맞다** ([작업일지 §4](worklog/2026-08-21-sample-eda.md) 참조). 가이드라인 문서의 예시 JSON이 잘못 실린 것.
 
 ## 7. 참고: AI Hub 공개 벤치마크
 
